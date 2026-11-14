@@ -8,6 +8,11 @@ const config = {
     },
     resendApiKey: process.env.RESEND_API_KEY!,
     uploadthingToken: process.env.UPLOADTHING_TOKEN!,
+    contentRepoUrl:
+      process.env.CONTENT_REPO_URL ||
+      "https://github.com/rohitg00/ai-engineering-from-scratch.git",
+    contentRef: process.env.CONTENT_REF || "main",
+    geminiApiKey: process.env.GEMINI_API_KEY || undefined,
   },
 };
 

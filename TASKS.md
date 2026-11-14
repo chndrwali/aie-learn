@@ -50,11 +50,13 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 ### T2. Script ingest
 
 **Rujukan:** `CONTENT-PIPELINE.md` (seluruhnya)
-- [ ] `modules/learning/lib/parse-lesson.ts` + test dengan fixture (termasuk header lengkap, header sebagian, tanpa H1)
-- [ ] `modules/learning/lib/rewrite-links.ts` + test (semua baris tabel aturan link, kasus di dalam code fence)
-- [ ] `scripts/ingest-content.ts`: fetch, pass 1, pass 2, pass 2b (terjemah ke Bahasa Indonesia, glosarium di `content-meta/glossary.json`), upsert, report, pengaman, `--dry-run`, `--force`, `--ref`
-- [ ] `content-meta/phases.json` dan `phase-graph.json` dari dokumen
-- [ ] Script `content:sync` di `package.json`; env `CONTENT_REPO_URL` dan `CONTENT_REF`
+- [x] `modules/learning/lib/parse-lesson.ts` + test dengan fixture (termasuk header lengkap, header sebagian, tanpa H1)
+- [x] `modules/learning/lib/rewrite-links.ts` + test (semua baris tabel aturan link, kasus di dalam code fence)
+- [x] `scripts/ingest-content.ts`: fetch, pass 1, pass 2, pass 2b (terjemah ke Bahasa Indonesia, glosarium di `content-meta/glossary.json`), upsert, report, pengaman, `--dry-run`, `--force`, `--ref`
+- [x] `content-meta/phases.json` dan `phase-graph.json` dari dokumen
+- [x] Script `content:sync` di `package.json`; env `CONTENT_REPO_URL` dan `CONTENT_REF`
+
+**Selesai 14 Nov 2026.** Dry-run: 542 lesson, 20 fase, 0 skipped, 31 warning (lihat Backlog). `tsc` bersih, 18/18 unit test lulus, DB tetap 0 lesson (dry-run tidak menulis). Terjemah Pass 2b: mesin Gemini (`gemini-2.5-flash-lite`), aktif bila `GEMINI_API_KEY` diset; tanpa key materi disimpan English dan dicoba lagi di sync berikut. Dependency baru (kecil, wajib oleh pipeline untuk AST remark): `unified`, `remark-parse`, `remark-stringify`, `unist-util-visit`.
 
 **Acceptance:** `npm run content:sync -- --dry-run` mencetak report tanpa menulis DB; unit test parse dan rewrite lulus.
 **Verifikasi:** tempel report dry-run di laporan sesi.
@@ -204,3 +206,6 @@ Catat di sini hal yang ditemukan di luar scope task (bug, ide, ketidaksesuaian d
 
 - (kosong)
 - T1 (14 Nov 2026): `npm run lint` di starter bawaan sudah gagal sebelum T1 — 408 problem (303 error, 105 warning), sebagian besar di `app/generated/prisma/**` (hasil generate, git-ignored) dan komponen starter (`components/custom/color-picker.tsx`, `components/ui/combobox.tsx`, `components/ui/sidebar.tsx`). Bukan dari perubahan T1 (hanya `prisma/schema.prisma` + migrasi). Perlu diputuskan: tambah ignore eslint untuk `app/generated/**`, atau perbaiki komponen starter.
+- T2 (14 Nov 2026): 19 lesson bertipe `Capstone` (seluruh Fase 19 + 1 di Fase 12) dan 1 bertipe `Use + Build` tidak dikenali parser (hanya Learn/Build) → `type` jadi null. Keputusan: biarkan null, atau petakan Capstone → BUILD.
+- T2 (14 Nov 2026): total `estimatedMinutes` upstream = 72.600 menit (±1.210 jam) — jauh di atas perkiraan PRD ±306 jam. Upstream bertumbuh (542 lesson, Fase 19 saja 85 lesson). Perkiraan waktu di PRD perlu direvisi.
+- T2 (14 Nov 2026): 31 link antar-lesson jatuh ke GitHub (target tidak ada di katalog) — terbanyak di Fase 19 (11 link, dari `13-mcp-server-with-registry`) dan Fase 13. Bukan error ingest; target memang tidak ada di upstream.
