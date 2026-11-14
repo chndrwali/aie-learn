@@ -12,7 +12,7 @@
  * rumus math ($...$ / $$...$$), tag HTML, dan istilah glosarium.
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
+const GEMINI_MODEL = "gemini-3.5-flash-lite"; // 2.5-flash-lite ditolak API per 14 Nov 2026 ("no longer available to new users")
 const GT_ENDPOINT = "https://translate.googleapis.com/translate_a/single";
 const GT_MAX_CHARS = 4000;
 const GT_DELAY_MS = 1000; // jeda antar chunk — endpoint gratis mudah rate-limit
@@ -22,6 +22,8 @@ export interface TranslateOptions {
   apiKey: string | undefined;
   /** istilah yang wajib tetap Bahasa Inggris (dari content-meta/glossary.json) */
   doNotTranslate: string[];
+  /** path ke helper custom.gemini (dipakai bila apiKey tidak diset) */
+  geminiCli?: string;
 }
 
 export interface TranslateResult {
@@ -32,6 +34,53 @@ export interface TranslateResult {
 }
 
 /* ---------------- Gemini ---------------- */
+
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+
+function cleanGeminiText(text: string): string {
+  return text
+    .replace(/^```markdown\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+}
+
+/**
+ * Gemini via helper custom.gemini (kredensial di Secure Vault, bukan env).
+ * Retry bila 429 (free tier per-menit) atau 503 (model overload sementara):
+ * tunggu 65 dtk, maks 3x percobaan.
+ */
+async function translateWithGeminiCli(
+  markdown: string,
+  cliPath: string,
+  doNotTranslate: string[],
+): Promise<TranslateResult> {
+  const prompt = buildPrompt(markdown, doNotTranslate);
+  let lastReason = "helper gagal";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await sleep(65_000);
+    try {
+      const out = execFileSync(cliPath, [], {
+        input: prompt,
+        encoding: "utf-8",
+        timeout: 180_000,
+        maxBuffer: 50 * 1024 * 1024,
+      }) as unknown as string;
+      const cleaned = cleanGeminiText(out);
+      if (!cleaned) {
+        lastReason = "respons Gemini kosong";
+        continue;
+      }
+      return { translated: true, markdown: cleaned, engine: "gemini" };
+    } catch (err) {
+      const stderr =
+        (err as { stderr?: unknown })?.stderr?.toString() ?? String(err);
+      lastReason = stderr.slice(0, 200);
+      if (!/429|503/.test(stderr)) break;
+    }
+  }
+  return { translated: false, markdown, reason: lastReason };
+}
 
 function buildPrompt(markdown: string, doNotTranslate: string[]): string {
   const keep = doNotTranslate.length
@@ -100,10 +149,7 @@ async function translateWithGemini(
   if (!text) {
     return { translated: false, markdown, reason: "respons Gemini kosong" };
   }
-  const cleaned = text
-    .replace(/^```markdown\s*/i, "")
-    .replace(/\s*```$/, "")
-    .trim();
+  const cleaned = cleanGeminiText(text);
   return { translated: true, markdown: cleaned, engine: "gemini" };
 }
 
@@ -247,7 +293,8 @@ async function translateWithGoogle(
 
 /* ---------------- Entry point ---------------- */
 
-/** Terjemahkan satu dokumen markdown. Tanpa key -> Google Translate (tanpa key). */
+/** Terjemahkan satu dokumen markdown. Urutan mesin: Gemini via API key (env) ->
+ * Gemini via helper custom.gemini (Secure Vault) -> Google Translate (tanpa key). */
 export async function translateMarkdown(
   markdown: string,
   opts: TranslateOptions,
@@ -256,5 +303,8 @@ export async function translateMarkdown(
     return { translated: false, markdown, reason: "dokumen kosong" };
   }
   if (opts.apiKey) return translateWithGemini(markdown, opts);
+  if (opts.geminiCli && existsSync(opts.geminiCli)) {
+    return translateWithGeminiCli(markdown, opts.geminiCli, opts.doNotTranslate);
+  }
   return translateWithGoogle(markdown, opts.doNotTranslate);
 }

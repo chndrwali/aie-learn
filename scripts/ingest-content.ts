@@ -163,6 +163,17 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const repoUrl = process.env.CONTENT_REPO_URL || DEFAULT_REPO_URL;
   const geminiKey = process.env.GEMINI_API_KEY || undefined;
+  // Helper custom.gemini (kredensial di Secure Vault) — dipakai bila tidak ada
+  // GEMINI_API_KEY di env. Path relatif terhadap repo: ../custom-connectors/...
+  const geminiCli = path.join(
+    REPO_ROOT,
+    "..",
+    "custom-connectors",
+    "custom.gemini",
+    "bin",
+    "gemini-generate",
+  );
+  const geminiCliPath = existsSync(geminiCli) ? geminiCli : undefined;
   const phasesMeta = loadJson<Record<string, PhaseMeta>>(PHASES_META_PATH);
   const glossary = loadJson<{ doNotTranslate: string[] }>(GLOSSARY_PATH);
   const warnings: string[] = [];
@@ -265,25 +276,36 @@ async function main(): Promise<void> {
     // Mesin dipilih di translateMarkdown: Gemini bila GEMINI_API_KEY diset,
     // kalau tidak Google Translate tanpa key (Candra: "lo aja yang nerjemahin").
     // Circuit breaker: bila 15 lesson beruntun gagal (biasanya rate limit),
-    // batalkan run — lesson yang sudah diterjemahkan TETAP tersimpan, dan
-    // sync berikutnya hanya mengulang yang belum (idempotent via contentHash).
+    // berhenti menerjemahkan — lesson yang belum/gagal diterjemahkan
+    // MEMPERTAHANKAN versi tersimpan di DB (bila ada), supaya sync tidak
+    // menimpa terjemahan Indonesia dari sync sebelumnya dengan English
+    // (bug sync 2, 14 Nov 2026: 168 terjemahan sync 1 tertimpa English).
+    const stored = await prisma.lesson.findMany({
+      select: { sourcePath: true, contentMd: true },
+    });
+    const storedByPath = new Map(
+      stored.map((s) => [s.sourcePath, s.contentMd]),
+    );
+    const translatedPaths = new Set<string>();
     let consecutiveFailures = 0;
     for (let i = 0; i < scanned.length; i++) {
       const lesson = scanned[i];
       const result = await translateMarkdown(lesson.contentMd, {
         apiKey: geminiKey,
+        geminiCli: geminiCliPath,
         doNotTranslate: glossary.doNotTranslate,
       });
       if (result.translated) {
         lesson.contentMd = result.markdown;
         translated += 1;
+        translatedPaths.add(lesson.sourcePath);
         engineUsed = result.engine ?? engineUsed;
         consecutiveFailures = 0;
       } else {
         untranslated += 1;
         consecutiveFailures += 1;
         warnings.push(
-          `${lesson.sourcePath}: terjemahan gagal (${result.reason}); disimpan English`,
+          `${lesson.sourcePath}: terjemahan gagal (${result.reason}); versi tersimpan dipertahankan`,
         );
         if (consecutiveFailures >= 15) {
           // Berhenti menerjemahkan, TAPI tetap lanjut ke tulis DB: lesson yang
@@ -292,7 +314,7 @@ async function main(): Promise<void> {
           warnings.push(
             `Circuit breaker: 15 lesson beruntun gagal diterjemahkan (${result.reason}). ` +
               `Kemungkinan rate limit endpoint terjemahan. ${translated} lesson sudah diterjemahkan ` +
-              `di run ini; ${scanned.length - (i + 1)} lesson belum dicoba dan tetap English.`,
+              `di run ini; ${scanned.length - (i + 1)} lesson belum dicoba dan mempertahankan versi tersimpan.`,
           );
           untranslated += scanned.length - (i + 1);
           break;
@@ -303,9 +325,19 @@ async function main(): Promise<void> {
       }
       await sleep(TRANSLATE_DELAY_MS);
     }
-    if (!geminiKey) {
+    // Pulihkan versi tersimpan untuk semua lesson yang tidak berhasil
+    // diterjemahkan di run ini (gagal maupun belum dicoba karena breaker).
+    // Tanpa ini, fase tulis akan menimpa terjemahan lama dengan English.
+    for (const lesson of scanned) {
+      if (translatedPaths.has(lesson.sourcePath)) continue;
+      const prev = storedByPath.get(lesson.sourcePath);
+      if (prev !== undefined) lesson.contentMd = prev;
+    }
+    if (engineUsed) {
       warnings.push(
-        `Terjemahan memakai Google Translate (tanpa key); GEMINI_API_KEY tidak diset`,
+        engineUsed === "gemini"
+          ? "Terjemahan memakai Gemini (gemini-3.5-flash-lite)"
+          : "Terjemahan memakai Google Translate (tanpa key); GEMINI_API_KEY tidak diset dan helper custom.gemini tidak ditemukan",
       );
     }
   }
