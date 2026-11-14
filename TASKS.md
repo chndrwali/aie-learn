@@ -203,3 +203,4 @@ Setiap task Should memakai format yang sama: rencana singkat, implementasi, veri
 Catat di sini hal yang ditemukan di luar scope task (bug, ide, ketidaksesuaian dokumen). Jangan dikerjakan sebelum dijadwalkan.
 
 - (kosong)
+- T1 (14 Nov 2026): `npm run lint` di starter bawaan sudah gagal sebelum T1 — 408 problem (303 error, 105 warning), sebagian besar di `app/generated/prisma/**` (hasil generate, git-ignored) dan komponen starter (`components/custom/color-picker.tsx`, `components/ui/combobox.tsx`, `components/ui/sidebar.tsx`). Bukan dari perubahan T1 (hanya `prisma/schema.prisma` + migrasi). Perlu diputuskan: tambah ignore eslint untuk `app/generated/**`, atau perbaiki komponen starter.
