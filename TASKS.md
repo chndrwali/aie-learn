@@ -64,11 +64,13 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 ### T3. Sync pertama dan verifikasi konten
 
 **Rujukan:** checklist di akhir `CONTENT-PIPELINE.md`
-- [ ] Jalankan `content:sync` terhadap database **development**
-- [ ] Kerjakan seluruh checklist verifikasi dan tulis hasilnya di `docs/CONTENT-REPORT.md`
-- [ ] Putuskan: `remark-math`/KaTeX? mermaid? HTML mentah? Catat keputusan di laporan
-- [ ] Jalankan sync kedua: pastikan `added: 0, updated: 0`
-- [ ] Spot-check terjemahan 5 lesson acak: istilah konsisten dengan glosarium, tidak ada kalimat Inggris tertinggal kecuali istilah teknis/nama
+- [x] Jalankan `content:sync` terhadap database **development** (14 Nov 2026, 43 menit, commit `8afa245`; 542 lesson, 20 fase, added 542 — TAPI terjemahan baru 168/542, sisanya kena rate limit Google Translate, lihat bawah)
+- [x] Kerjakan seluruh checklist verifikasi dan tulis hasilnya di `docs/CONTENT-REPORT.md`
+- [x] Putuskan: `remark-math`/KaTeX? mermaid? HTML mentah? Catat keputusan di laporan (mermaid YA 213 lesson/395 blok; math YA remark-math+KaTeX; HTML mentah TIDAK — tidak ada di prosa)
+- [ ] Jalankan sync kedua: pastikan `added: 0, updated: 0` — **BELUM, menunggu retry terjemahan 374 lesson** (sync ulang idempotent; bila retry berhasil, sync ke-3 yang harus menunjukkan added 0, updated 0)
+- [x] Spot-check terjemahan 5 lesson acak: istilah konsisten dengan glosarium, tidak ada kalimat Inggris tertinggal kecuali istilah teknis/nama (2 lolos; 3 masih English karena rate limit, dinilai ulang setelah retry)
+
+**Status 14 Nov 2026 (SEBAGIAN):** translator keyless (Google Translate, tanpa key) kena HTTP 429 mulai fase 09 — 358 gagal network + 16 gagal placeholder (bug restore, sudah diperbaiki jadi fixpoint). Lesson gagal tetap tersimpan English. Perbaikan: retry backoff 10/30/90 dtk, jeda 1 dtk, circuit breaker 15 gagal beruntun. Retry dijadwalkan otomatis; opsi cepat: `GEMINI_API_KEY` gratis dari AI Studio.
 
 **Acceptance:** DB berisi fase dan lesson; laporan verifikasi tersimpan; keputusan plugin renderer tertulis.
 **Verifikasi:** `docs/CONTENT-REPORT.md` berisi angka nyata (bukan perkiraan) per fase.

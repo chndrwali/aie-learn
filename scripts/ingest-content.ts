@@ -39,7 +39,7 @@ const DEFAULT_REPO_URL =
   "https://github.com/rohitg00/ai-engineering-from-scratch.git";
 const DEFAULT_REF = "main";
 const DEFAULT_MIN_CHARS = 400;
-const TRANSLATE_DELAY_MS = 1500; // jeda antar request Gemini (free tier rate limit)
+const TRANSLATE_DELAY_MS = 1000; // jeda antar lesson (di dalam lesson, Google Translate sudah dijeda per chunk)
 
 interface Args {
   dryRun: boolean;
@@ -255,18 +255,21 @@ async function main(): Promise<void> {
   // ---------- Pass 2b: terjemah (dilewati di dry-run) ----------
   let translated = 0;
   let untranslated = 0;
+  let engineUsed: string | null = null;
   if (args.dryRun) {
     untranslated = scanned.length;
     warnings.push(
-      "Dry-run: terjemahan dilewati; sync beneran butuh GEMINI_API_KEY di .env",
-    );
-  } else if (!geminiKey) {
-    untranslated = scanned.length;
-    warnings.push(
-      "GEMINI_API_KEY tidak diset — materi disimpan dalam Bahasa Inggris (terjemahan pending, akan dicoba lagi di sync berikutnya)",
+      "Dry-run: terjemahan dilewati (Pass 2b hanya jalan di sync beneran)",
     );
   } else {
-    for (const lesson of scanned) {
+    // Mesin dipilih di translateMarkdown: Gemini bila GEMINI_API_KEY diset,
+    // kalau tidak Google Translate tanpa key (Candra: "lo aja yang nerjemahin").
+    // Circuit breaker: bila 15 lesson beruntun gagal (biasanya rate limit),
+    // batalkan run — lesson yang sudah diterjemahkan TETAP tersimpan, dan
+    // sync berikutnya hanya mengulang yang belum (idempotent via contentHash).
+    let consecutiveFailures = 0;
+    for (let i = 0; i < scanned.length; i++) {
+      const lesson = scanned[i];
       const result = await translateMarkdown(lesson.contentMd, {
         apiKey: geminiKey,
         doNotTranslate: glossary.doNotTranslate,
@@ -274,13 +277,36 @@ async function main(): Promise<void> {
       if (result.translated) {
         lesson.contentMd = result.markdown;
         translated += 1;
+        engineUsed = result.engine ?? engineUsed;
+        consecutiveFailures = 0;
       } else {
         untranslated += 1;
+        consecutiveFailures += 1;
         warnings.push(
           `${lesson.sourcePath}: terjemahan gagal (${result.reason}); disimpan English`,
         );
+        if (consecutiveFailures >= 15) {
+          // Berhenti menerjemahkan, TAPI tetap lanjut ke tulis DB: lesson yang
+          // sudah diterjemahkan tersimpan, sisanya tetap English dan dicoba
+          // lagi di sync berikut (idempotent via contentHash).
+          warnings.push(
+            `Circuit breaker: 15 lesson beruntun gagal diterjemahkan (${result.reason}). ` +
+              `Kemungkinan rate limit endpoint terjemahan. ${translated} lesson sudah diterjemahkan ` +
+              `di run ini; ${scanned.length - (i + 1)} lesson belum dicoba dan tetap English.`,
+          );
+          untranslated += scanned.length - (i + 1);
+          break;
+        }
+      }
+      if ((i + 1) % 50 === 0) {
+        console.log(`  ... ${i + 1}/${scanned.length} lesson diterjemahkan`);
       }
       await sleep(TRANSLATE_DELAY_MS);
+    }
+    if (!geminiKey) {
+      warnings.push(
+        `Terjemahan memakai Google Translate (tanpa key); GEMINI_API_KEY tidak diset`,
+      );
     }
   }
 
