@@ -7,6 +7,7 @@ import {
   RegisterFormValues,
   registerSchema,
 } from "@/lib/form-schema";
+import { getSafeCallbackUrl } from "@/lib/safe-redirect";
 import { signIn, signUp } from "@/lib/auth-client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 type AuthFormProps = {
   variant: "login" | "register";
+  // Tujuan setelah login (dari ?callbackURL=...). Disanitasi dengan
+  // getSafeCallbackUrl; hanya dipakai varian login.
+  callbackURL?: string;
 };
 
 // ────────────────────────────────────────────
@@ -63,7 +67,7 @@ const variantConfig = {
 // ────────────────────────────────────────────
 // AuthForm
 // ────────────────────────────────────────────
-export const AuthForm = ({ variant }: AuthFormProps) => {
+export const AuthForm = ({ variant, callbackURL }: AuthFormProps) => {
   const isLogin = variant === "login";
   const config = variantConfig[variant];
 
@@ -85,19 +89,20 @@ export const AuthForm = ({ variant }: AuthFormProps) => {
 
     if (isLogin) {
       const loginValues = values as LoginFormValues;
+      const safeCallbackUrl = getSafeCallbackUrl(callbackURL);
       await signIn.email(
         {
           email: loginValues.email,
           password: loginValues.password,
           rememberMe: loginValues.remember ?? true,
-          callbackURL: "/admin",
+          callbackURL: safeCallbackUrl,
         },
         {
           onRequest: () => setLoading(true),
           onSuccess: () => {
             setLoading(false);
             appToast.success("Successfully logged in!");
-            router.push("/admin");
+            router.push(safeCallbackUrl);
           },
           onError: (ctx) => {
             setLoading(false);

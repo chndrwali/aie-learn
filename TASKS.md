@@ -82,14 +82,20 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 ### T4. Gating dan landing sementara
 
 **Rujukan:** `front-end-flow.md` (Guard dan callbackURL), PRD FR-001 sampai FR-003
-- [ ] `lib/safe-redirect.ts` (`getSafeCallbackUrl`) + test seluruh tabel kasus
-- [ ] Baca `proxy.ts` lalu extend untuk path belajar (cek cookie, redirect dengan `callbackURL`)
-- [ ] Buat `app/(learn)/layout.tsx` dengan guard server dan metadata `noindex`
-- [ ] Halaman placeholder `/dashboard` (teks sederhana)
-- [ ] Form login memakai `getSafeCallbackUrl`; setelah login default ke `/dashboard`
-- [ ] Ganti `app/(public)/page.tsx` dari redirect menjadi landing sementara (judul + tombol Masuk/Daftar)
-- [ ] Hapus pemakaian `login-account-info` di halaman login
-- [ ] `app/robots.ts`
+- [x] `lib/safe-redirect.ts` (`getSafeCallbackUrl`) + test seluruh tabel kasus (27 test, semua lolos — tabel 9 kasus dari front-end-flow + 18 varian serangan/tambahan)
+- [x] Baca `proxy.ts` lalu extend untuk path belajar (cek cookie, redirect dengan `callbackURL`) — matcher kini `/admin/:path*`, `/dashboard`, `/curriculum/:path*`, `/learn/:path*`, `/notes/:path*`, `/settings/:path*`; tanpa cookie → `/login?callbackURL=<path+query>` (kecuali /admin, tetap plain `/login` seperti bawaan starter); bila ada cookie, proxy menyetel header `x-pathname` untuk guard lapis 2
+- [x] Buat `app/(learn)/layout.tsx` dengan guard server dan metadata `noindex` — `getSession()`; tanpa session → redirect `/login?callbackURL=<path>` (path dari header `x-pathname`, fallback `x-invoke-path`/`next-url`/`/dashboard`)
+- [x] Halaman placeholder `/dashboard` (teks sederhana)
+- [x] Form login memakai `getSafeCallbackUrl`; setelah login default ke `/dashboard` — `login/page.tsx` (Server Component) membaca `searchParams.callbackURL` dan meneruskannya sebagai prop ke `AuthForm`; `signIn.email` + `router.push` memakai hasil sanitasi; teks "Masuk untuk membuka materi." tampil bila datang dari gating (DESIGN.md). Perubahan pendamping: `(auth)/layout.tsx` kini redirect pengguna login ke `/dashboard` (sebelumnya `/admin`) supaya konsisten dengan default pasca-login dan tidak ada balapan dengan `router.push`.
+- [x] Ganti `app/(public)/page.tsx` dari redirect menjadi landing sementara (judul + tombol Masuk/Daftar) — Server Component; bila sudah login tombolnya "Ke dashboard"; ada atribusi upstream (MIT) di footer kecil
+- [x] Hapus pemakaian `login-account-info` di halaman login
+- [x] `app/robots.ts` — disallow `/dashboard`, `/curriculum`, `/learn`, `/admin`
+
+**Selesai 14 Nov 2026.** `tsc` bersih; lint bersih pada file yang disentuh (lint repo-wide sudah rusak sebelum T1, 408 masalah bawaan starter); unit test 45/45 lulus (27 safe-redirect + 18 lib learning).
+
+**Verifikasi (curl + API, 14 Nov 2026):** `/dashboard` tanpa cookie → 307 `/login?callbackURL=%2Fdashboard`; `/learn/07-.../01-why-transformers` → 307 dengan callbackURL ter-encode; `/curriculum` → 307; `/` → 200 (landing, ada "AIE Learn"/"Daftar"/"Masuk"); `/robots.txt` → 4 disallow benar; cookie sesi PALSU → `/dashboard` tetap 307 (guard lapis 2 layout bekerja, bukan cuma proxy); registrasi + login via API Better Auth berhasil, lalu `/dashboard` dengan cookie sesi asli → 200 + placeholder tampil; `/` dengan cookie → tombol "Ke dashboard"; `/login` dan `/register` dengan cookie → 307 ke `/dashboard`. Akun tes dihapus setelah verifikasi (0 user di DB).
+
+**Catatan jujur — cek browser sungguhan TIDAK jalan:** browser cloud tidak bisa membuka `http://localhost:3000` (localhost sandbox tidak terjangkau dari luar); percobaan tunnel gagal — Cloudflare quick tunnel ditolak TLS oleh proxy egress, localtunnel menggantung tanpa URL. Jadi langkah "cek manual di browser desktop + 375px" belum terpenuhi untuk T4; yang terverifikasi adalah SSR/curl + alur auth via API + unit test. Cek visual (termasuk 375px) bisa dilakukan saat Candra menjalankan dev server di mesinnya sendiri, atau setelah deploy.
 
 **Acceptance:** semua poin US-02 dan US-03 terpenuhi.
 **Verifikasi:**

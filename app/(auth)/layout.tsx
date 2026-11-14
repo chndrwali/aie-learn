@@ -10,7 +10,10 @@ export default async function AuthLayoutWrapper({
   const session = await getSession();
 
   if (session) {
-    redirect("/admin");
+    // Pengguna yang sudah login tidak perlu melihat halaman auth.
+    // Tujuan default pasca-login adalah /dashboard (T4); /admin tetap
+    // bisa dibuka langsung bagi admin.
+    redirect("/dashboard");
   }
 
   return <AuthLayout>{children}</AuthLayout>;
