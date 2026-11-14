@@ -43,7 +43,7 @@ model Lesson {
   languages        String[]
   prerequisites    String?
   estimatedMinutes Int?
-  contentMd        String      @db.Text        // body markdown tanpa H1/motto/meta, link sudah ditulis ulang
+  contentMd        String      @db.Text        // body markdown tanpa H1/motto/meta, link sudah ditulis ulang, dalam Bahasa Indonesia (terjemahan dari docs/en.md)
   contentHash      String                      // sha256(contentMd + metadata)
   sourcePath       String      @unique         // "phases/00-setup-and-tooling/01-dev-environment"
   sourceSha        String                      // commit upstream saat ingest

@@ -39,7 +39,7 @@ dan progres per user tersimpan di server. Semua area belajar hanya bisa diakses 
 3. Pengguna 1 sampai 20 orang. Tier gratis Neon dan Vercel cukup.
 4. Hanya `docs/en.md` yang disimpan di database. Kode, notebook, dan `outputs/` lesson di-link ke GitHub.
 5. Navigasi bebas, tanpa lock berurutan. README upstream sendiri menyarankan melompat jika sudah menguasai fondasi.
-6. Konten berbahasa Inggris, UI berbahasa Indonesia.
+6. Konten (materi) berbahasa Indonesia — diterjemahkan dari `docs/en.md` upstream saat ingest; istilah teknis boleh tetap English; tautan ke sumber Inggris tetap ada di footer atribusi (keputusan Candra, 14 Nov 2026).
 7. Nomor lesson upstream **tidak kontigu** (contoh dari README: Phase 10 melompat 22 → 25 → 34, Phase 8 melompat 14 → 19). Urutan ditentukan oleh sorting nomor folder, bukan asumsi 1..N.
 
 **Risks and mitigations.**
@@ -50,6 +50,7 @@ dan progres per user tersimpan di server. Semua area belajar hanya bisa diakses 
 | Sebagian lesson belum lengkap (README menyebut "completed lesson") | Ingest melewati lesson tanpa `docs/en.md` atau terlalu pendek, lalu mencatatnya di report. |
 | Markdown tak terduga (HTML mentah, LaTeX, mermaid) | Verifikasi di task T3 sebelum memilih plugin renderer. Tanpa raw HTML. |
 | Lisensi | Footer atribusi + `THIRD_PARTY_NOTICES.md` berisi teks lisensi MIT upstream. |
+| Terjemahan 542 lesson tidak konsisten / salah istilah | Glosarium istilah di `content-meta/glossary.json`; spot-check terjemahan di T3; sumber Inggris selalu ditautkan. |
 | Scope creep ala LMS | MoSCoW ketat. Daftar "Won't have" dipatuhi. |
 | Forgot password butuh email | Aktif hanya jika Resend dikonfigurasi. Jika tidak, link disembunyikan. |
 
@@ -156,7 +157,7 @@ Persona: Owner/Admin
 | FR-204 | Tab "Ship It": tampilkan `outputs/prompt-*.md` dan `skill-*.md` lesson |
 | FR-205 | Antrian review (spaced repetition) |
 | FR-206 | Export progress ke JSON |
-| FR-207 | Toggle bahasa jika upstream menyediakan `docs/id.md` |
+| FR-207 | Toggle bahasa (ditunda; MVP hanya menyimpan versi Indonesia) |
 
 ### Won't Have (for now)
 
@@ -473,7 +474,7 @@ Detail per task: `TASKS.md`.
 ## 13. Open Questions
 
 1. Registrasi dibuka untuk umum, atau hanya owner dan undangan? Default: terbuka. Opsi: env `REGISTRATION_OPEN`.
-2. Apakah upstream punya `docs/id.md` atau versi bahasa lain per lesson? Dicek di ingest (T3). Jika ada, FR-207 naik prioritas.
+2. Apakah upstream punya `docs/id.md` atau versi bahasa lain per lesson? Terjawab 14 Nov 2026 (Candra): materi wajib Bahasa Indonesia, jadi diterjemahkan saat ingest meski upstream tidak menyediakan `docs/id.md`. FR-207 (toggle bahasa) ditunda.
 3. Berapa lesson yang benar-benar lengkap? Dijawab oleh report sync pertama.
 4. Apakah lesson memakai LaTeX dan mermaid? Dicek di T3 dengan grep sebelum menambah `remark-math`/`rehype-katex`/`mermaid`.
 5. Timeline 2 minggu part-time realistis? Sesuaikan setelah T0 sampai T3.

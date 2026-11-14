@@ -8,6 +8,7 @@ Untuk Claude Code, buat `CLAUDE.md` berisi satu baris: `@AGENTS.md`.
 **AIE Learn** adalah web belajar pribadi bergaya LMS (seperti Dicoding) untuk kurikulum open source
 [`rohitg00/ai-engineering-from-scratch`](https://github.com/rohitg00/ai-engineering-from-scratch) (lisensi MIT).
 Dibangun di atas [`chndrwali/nextjs-starter-kit`](https://github.com/chndrwali/nextjs-starter-kit).
+Materi belajar berbahasa Indonesia (terjemahan dari `docs/en.md` upstream; istilah teknis boleh English).
 
 Tiga hal yang tidak boleh rusak:
 

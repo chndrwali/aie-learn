@@ -5,7 +5,7 @@ Spesifikasi script `scripts/ingest-content.ts` (`npm run content:sync`) yang mem
 ## Sumber
 
 - Repo: `https://github.com/rohitg00/ai-engineering-from-scratch` (lisensi MIT)
-- Isi yang dipakai: hanya `phases/**/docs/en.md`
+- Isi yang dipakai: hanya `phases/**/docs/en.md`, diterjemahkan ke Bahasa Indonesia sebelum disimpan (lihat Pass 2b).
 - Isi yang di-link, tidak disalin: `code/`, `notebook/`, `outputs/` per lesson
 - Struktur lesson menurut `LESSON_TEMPLATE.md` upstream:
 
@@ -94,6 +94,10 @@ Aturan parse (fungsi murni di `modules/learning/lib/parse-lesson.ts`, wajib ada 
 | `contentMd` | Isi mulai dari heading `## ` pertama (H1, motto, dan blok meta dibuang). Jika tidak ada `## `, simpan seluruh isi setelah H1. | - |
 
 Parser tidak boleh melempar error karena format menyimpang. Ia mengembalikan hasil sebagian + `warnings`.
+
+### 2b. Pass 2b: terjemahkan ke Bahasa Indonesia
+
+Setelah link ditulis ulang, `contentMd` diterjemahkan ke Bahasa Indonesia (istilah teknis, nama API, dan potongan kode tetap English). Glosarium istilah dijaga di `content-meta/glossary.json` agar istilah yang sama selalu diterjemahkan sama di semua lesson. `contentHash` dihitung dari hasil terjemahan. Tautan ke sumber Inggris asli tetap ada lewat `AttributionFooter` (bukan di dalam `contentMd`).
 
 ### 3. Pass 2: tulis ulang link
 

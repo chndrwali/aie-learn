@@ -52,7 +52,7 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 **Rujukan:** `CONTENT-PIPELINE.md` (seluruhnya)
 - [ ] `modules/learning/lib/parse-lesson.ts` + test dengan fixture (termasuk header lengkap, header sebagian, tanpa H1)
 - [ ] `modules/learning/lib/rewrite-links.ts` + test (semua baris tabel aturan link, kasus di dalam code fence)
-- [ ] `scripts/ingest-content.ts`: fetch, pass 1, pass 2, upsert, report, pengaman, `--dry-run`, `--force`, `--ref`
+- [ ] `scripts/ingest-content.ts`: fetch, pass 1, pass 2, pass 2b (terjemah ke Bahasa Indonesia, glosarium di `content-meta/glossary.json`), upsert, report, pengaman, `--dry-run`, `--force`, `--ref`
 - [ ] `content-meta/phases.json` dan `phase-graph.json` dari dokumen
 - [ ] Script `content:sync` di `package.json`; env `CONTENT_REPO_URL` dan `CONTENT_REF`
 
@@ -66,6 +66,7 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 - [ ] Kerjakan seluruh checklist verifikasi dan tulis hasilnya di `docs/CONTENT-REPORT.md`
 - [ ] Putuskan: `remark-math`/KaTeX? mermaid? HTML mentah? Catat keputusan di laporan
 - [ ] Jalankan sync kedua: pastikan `added: 0, updated: 0`
+- [ ] Spot-check terjemahan 5 lesson acak: istilah konsisten dengan glosarium, tidak ada kalimat Inggris tertinggal kecuali istilah teknis/nama
 
 **Acceptance:** DB berisi fase dan lesson; laporan verifikasi tersimpan; keputusan plugin renderer tertulis.
 **Verifikasi:** `docs/CONTENT-REPORT.md` berisi angka nyata (bukan perkiraan) per fase.
