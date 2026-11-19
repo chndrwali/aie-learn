@@ -8,6 +8,7 @@ const lessonSummarySelect = {
   type: true,
   estimatedMinutes: true,
   sortOrder: true,
+  number: true,
 } as const;
 
 /**
@@ -37,7 +38,8 @@ export async function getLesson(
       prerequisites: true,
       estimatedMinutes: true,
       contentMd: true,
-      phase: { select: { slug: true, title: true } },
+      sourcePath: true,
+      phase: { select: { slug: true, title: true, number: true } },
     },
   });
   if (!lesson) throw notFound();
@@ -77,6 +79,7 @@ export async function getLesson(
       ...rest,
       phaseSlug: phase.slug,
       phaseTitle: phase.title,
+      phaseNumber: phase.number,
     },
     prev: prev
       ? { slug: prev.slug, phaseSlug: prev.phase.slug, title: prev.title }

@@ -130,3 +130,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Shiki (MarkdownRenderer): warna token lewat variabel agar ikut tema
+   terang/gelap. Plugin lib/shiki.ts menulis warna terang sebagai
+   --shiki-light dan gelap sebagai --shiki-dark pada tiap span. */
+.shiki-code span {
+  color: var(--shiki-light);
+}
+.dark .shiki-code span {
+  color: var(--shiki-dark);
+}
+
+/* KaTeX: rumus display yang lebar di-scroll di dalam artikel, bukan
+   meluberkan body (penting di 375px — persamaan aligned backprop). */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
