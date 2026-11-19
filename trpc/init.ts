@@ -30,7 +30,10 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
   const session = await getSession();
 
   if (!session) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Belum login" });
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Silakan masuk terlebih dahulu.",
+    });
   }
 
   // ctx is already typed to include ip
@@ -42,7 +45,7 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.auth.user?.role !== "admin") {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "Anda tidak memiliki akses admin",
+      message: "Kamu tidak punya akses ke halaman ini.",
     });
   }
   return next();

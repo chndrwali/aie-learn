@@ -106,10 +106,12 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 ### T5. Router tRPC
 
 **Rujukan:** `backend_flow.md`, `DATABASE.md` (Query penting)
-- [ ] Pure function + test: `resolveContinue`, `computePhaseProgress`
-- [ ] `modules/learning/server/*`: katalog, lesson, progress, (note dan search ditunda)
-- [ ] Router: `landing`, `catalog`, `lesson`, `progress` di `trpc/routers/`, daftarkan di `_app.ts`
-- [ ] Test integrasi (Neon branch atau DB test): isolasi antar user, idempotensi `markComplete`, `visit` tidak menurunkan `COMPLETED`, `UNAUTHORIZED` tanpa session, `landing.outline` tidak membocorkan `contentMd`
+- [x] Pure function + test: `resolveContinue`, `computePhaseProgress` (`modules/learning/lib/progress.ts`, 11 test — kasus 1–4 + materi terakhir dinonaktifkan + tanpa materi aktif; percent dibulatkan, total 0 → 0)
+- [x] `modules/learning/server/*`: katalog, lesson, progress, (note dan search ditunda) — `landing.ts` (outline allowlist), `catalog.ts`, `lesson.ts`, `progress.ts`, `common.ts` (requireActiveLesson, findActivePhase, notFound "Materi tidak ditemukan.")
+- [x] Router: `landing`, `catalog`, `lesson`, `progress` di `trpc/routers/`, daftarkan di `_app.ts` — note.* (T13), search.* (T14), admin.* (T16) TIDAK dibuat di T5 sesuai rencana. Pesan error `trpc/init.ts` disamakan dengan tabel backend_flow (UNAUTHORIZED "Silakan masuk terlebih dahulu.", FORBIDDEN "Kamu tidak punya akses ke halaman ini.")
+- [x] Test integrasi (Neon branch atau DB test): isolasi antar user, idempotensi `markComplete`, `visit` tidak menurunkan `COMPLETED`, `UNAUTHORIZED` tanpa session, `landing.outline` tidak membocorkan `contentMd` — `modules/learning/server/learning.integration.test.ts`, 12 test, DB test langsung (session dimock, user tes dibuat + dihapus otomatis; skip bila DATABASE_URL tidak diset)
+
+**Selesai 19 Nov 2026.** `vitest.config.ts` BARU (alias `@/*` seperti tsconfig — sebelumnya Vitest tidak bisa resolve `@/`, padahal test unit lama hanya pakai import relatif). `tsc` bersih; lint bersih pada file yang disentuh; unit test 56/56 lulus (progress 11 + parse/rewrite 18 + safe-redirect 27); integrasi 12/12 lulus (±12 dtk via tunnel Neon); tanpa DATABASE_URL file integrasi skip 12/12 (tidak crash). DB bersih setelah test (0 user, 0 progress).
 
 **Acceptance:** semua baris tabel procedure (kecuali note, search, admin) berfungsi; semua test lulus.
 **Verifikasi:** laporkan daftar test dan hasilnya.
