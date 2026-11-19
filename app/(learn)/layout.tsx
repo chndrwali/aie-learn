@@ -1,4 +1,5 @@
 import { getSession } from "@/hooks/get-session";
+import LearnerLayout from "@/modules/learning/ui/layout/learner-layout";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -27,5 +28,16 @@ export default async function LearnLayout({
     redirect(`/login?callbackURL=${encodeURIComponent(path)}`);
   }
 
-  return <>{children}</>;
+  // Skip link (DESIGN.md §9): elemen pertama layout, muncul saat fokus.
+  return (
+    <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-100 focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:underline"
+      >
+        Lompat ke konten
+      </a>
+      <LearnerLayout>{children}</LearnerLayout>
+    </>
+  );
 }

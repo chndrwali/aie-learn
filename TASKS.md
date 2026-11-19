@@ -123,13 +123,15 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 ### T6. Shell learner
 
 **Rujukan:** `DESIGN.md` bagian 3, 4, 6; `front-end-flow.md`
-- [ ] Terapkan token warna di `globals.css`; tambahkan Source Serif 4 via `next/font`
-- [ ] Config nav learner (Dashboard, Kurikulum). Baca dulu `modules/admin/ui/config/` dan `use-nav.ts`
-- [ ] Shell: sidebar, header, breadcrumb, skip link; dipakai oleh `(learn)/layout.tsx`
-- [ ] Mode terang dan gelap sama-sama diperiksa
+- [x] Terapkan token warna di `globals.css`; tambahkan Source Serif 4 via `next/font`
+- [x] Config nav learner (Dashboard, Kurikulum). Baca dulu `modules/admin/ui/config/` dan `use-nav.ts`
+- [x] Shell: sidebar, header, breadcrumb, skip link; dipakai oleh `(learn)/layout.tsx`
+- [x] Mode terang dan gelap sama-sama diperiksa
 
 **Acceptance:** shell tampil benar di desktop dan 375px; kontras token lulus pemeriksaan devtools.
 **Verifikasi:** tangkap layar terang/gelap, desktop/mobile.
+
+**Selesai 19 Nov 2026.** Token DESIGN.md §3 diterapkan di `globals.css` (termasuk `--radius: 0.375rem`; var sidebar mengikuti palet); Source Serif 4 via `next/font` (variabel `--font-source-serif`, utilitas `font-serif`; terverifikasi di class `<body>` + stylesheet). Shell pakai komponen shadcn (bukan rakitan manual): `Sidebar` + `SidebarTrigger` + `Breadcrumb` + `ThemeModeToggle` + `Sheet` (mobile, bawaan Sidebar); tanpa animasi GSAP (DESIGN §7). Nav learner: Dashboard + Kurikulum (Catatan menyusul T13); breadcrumb Indonesia (segmen `/learn` disembunyikan, "Fase N" dari slug); skip link "Lompat ke konten" + `<main id="main-content">`; sidebar default TERBUKA saat pertama kali (beda dari admin yang default tertutup — keputusan sadar, nav adalah peta kurikulumnya). Placeholder dashboard diubah `<main>` → `<div>` (shell yang menyediakan `<main>`). Kontras dihitung dari nilai oklch (`~/workspace/scratch/t6-shots/contrast.mjs`, rumus WCAG diperbaiki — versi pertama double-decode gamma): semua pasangan teks LULUS — terang terendah 5,15:1 (muted), gelap terendah 7,21:1 (destructive); sinyal/latar 5,12:1 terang, 8,64:1 gelap. Satu-satunya pasangan di bawah 3:1 adalah garis pemisah `--border` vs latar (1,27:1 terang / 1,41:1 gelap) — dekoratif di shell ini, tapi `--input` memakai nilai yang sama → masuk Backlog temuan untuk task input pertama. Verifikasi: tsc bersih, lint bersih (file disentuh), 56/56 unit test; screenshot Playwright Chromium lokal (`~/workspace/scratch/t6-shots/*.png`: desktop + 375px, terang + gelap, + Sheet mobile terbuka) tanpa console error — cloud browser tetap tidak bisa menjangkau localhost (T4), jadi screenshot memakai Playwright lokal. Catatan: tunnel `pg-tunnel.py` sempat mati saat verifikasi (cek `pgrep -f` memberi false positive karena match shell sendiri) — direstart; cek tunnel lewat port, bukan pgrep. `/curriculum` masih 404 sampai T8; breadcrumb judul materi memakai slug yang dirapikan sampai T7 menyediakan judul asli.
 
 ### T7. Lesson viewer
 
@@ -223,3 +225,4 @@ Catat di sini hal yang ditemukan di luar scope task (bug, ide, ketidaksesuaian d
 - T2 (14 Nov 2026): 19 lesson bertipe `Capstone` (seluruh Fase 19 + 1 di Fase 12) dan 1 bertipe `Use + Build` tidak dikenali parser (hanya Learn/Build) → `type` jadi null. Keputusan: biarkan null, atau petakan Capstone → BUILD.
 - T2 (14 Nov 2026): total `estimatedMinutes` upstream = 72.600 menit (±1.210 jam) — jauh di atas perkiraan PRD ±306 jam. Upstream bertumbuh (542 lesson, Fase 19 saja 85 lesson). Perkiraan waktu di PRD perlu direvisi.
 - T2 (14 Nov 2026): 31 link antar-lesson jatuh ke GitHub (target tidak ada di katalog) — terbanyak di Fase 19 (11 link, dari `13-mcp-server-with-registry`) dan Fase 13. Bukan error ingest; target memang tidak ada di upstream.
+- T6 (19 Nov 2026): `--border`/`--input` (oklch 0,9 terang / 0,3 gelap) hanya 1,27:1 (terang) / 1,41:1 (gelap) terhadap latar — di bawah 3:1 WCAG 1.4.11 untuk batas komponen. Sebagai garis pemisah dekoratif di shell ini tidak masalah (nilai DESIGN dipertahankan), TAPI task pertama yang mengirim input learner (T13 catatan / T14 pencarian) harus mengatasi: pisahkan `--input` lebih kuat atau beri latar isi pada input.
