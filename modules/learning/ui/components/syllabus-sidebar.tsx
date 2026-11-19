@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
   Sheet,
   SheetContent,
@@ -8,16 +9,19 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { summarizeLessonStatuses } from "@/modules/learning/lib/progress";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { List } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { ProgressMark } from "./progress-mark";
 
 /**
- * Daftar materi fase aktif. Desktop: kolom kiri 260px (DESIGN.md §4).
- * Mobile (< lg): tombol "Daftar materi" membuka Sheet.
- * Tanpa penanda status progres dulu (T8) — hanya judul + nomor + aktif.
+ * Daftar materi fase aktif dengan penanda progres (T8). Desktop: kolom kiri
+ * 260px (DESIGN.md §4). Mobile (< lg): tombol "Daftar materi" membuka Sheet.
+ * Header menampilkan "X dari Y selesai" + progress bar (role progressbar
+ * bawaan Radix).
  */
 export function SyllabusSidebar({
   phaseSlug,
@@ -31,13 +35,24 @@ export function SyllabusSidebar({
     trpc.lesson.syllabus.queryOptions({ phaseSlug }),
   );
   const [open, setOpen] = useState(false);
+  const { completed, total, percent } = summarizeLessonStatuses(
+    data.lessons.map((lesson) => lesson.status),
+  );
 
   const list = (
     <nav aria-label="Daftar materi fase ini">
       <p className="font-sans text-sm font-semibold">{data.phase.title}</p>
-      <p className="mt-0.5 mb-4 font-sans text-xs text-muted-foreground">
+      <p className="mt-0.5 font-sans text-xs text-muted-foreground">
         Fase {data.phase.number}
       </p>
+      <p className="mt-3 mb-1.5 font-sans text-xs text-muted-foreground">
+        {completed} dari {total} selesai
+      </p>
+      <Progress
+        value={percent}
+        aria-label={`Progres fase: ${completed} dari ${total} selesai`}
+        className="mb-4"
+      />
       <ul className="space-y-1">
         {data.lessons.map((lesson) => {
           const isActive = lesson.slug === currentSlug;
@@ -53,6 +68,9 @@ export function SyllabusSidebar({
                     : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
                 }`}
               >
+                <span className="mt-0.5 flex shrink-0">
+                  <ProgressMark status={lesson.status} />
+                </span>
                 <span className="shrink-0 font-mono text-xs leading-5">
                   {String(lesson.number).padStart(2, "0")}
                 </span>

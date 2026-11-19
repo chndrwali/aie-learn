@@ -42,7 +42,7 @@ export default async function LessonPage({
     }
     throw error;
   }
-  const { lesson, prev, next } = data;
+  const { lesson, prev, next, status } = data;
 
   // Prefetch daftar materi fase agar sidebar langsung tampil.
   await prefetch(trpc.lesson.syllabus.queryOptions({ phaseSlug: phase }));
@@ -74,7 +74,13 @@ export default async function LessonPage({
             >
               <MarkdownRenderer content={lesson.contentMd} />
             </article>
-            <LessonFooterNav prev={prev} next={next} />
+            <LessonFooterNav
+              lessonId={lesson.id}
+              phaseSlug={phase}
+              status={status}
+              prev={prev}
+              next={next}
+            />
             <AttributionFooter sourcePath={lesson.sourcePath} />
           </div>
         </div>

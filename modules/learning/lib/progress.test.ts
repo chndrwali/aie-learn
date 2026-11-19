@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computePhaseProgress,
   resolveContinue,
+  summarizeLessonStatuses,
   type ContinueLessonSummary,
 } from "./progress";
 
@@ -137,5 +138,43 @@ describe("computePhaseProgress", () => {
         ["p1", "pX", "pX"],
       ),
     ).toEqual([{ phaseId: "p1", total: 1, completed: 1, percent: 100 }]);
+  });
+});
+
+describe("summarizeLessonStatuses", () => {
+  it("daftar kosong → 0 dari 0, 0%", () => {
+    expect(summarizeLessonStatuses([])).toEqual({
+      completed: 0,
+      total: 0,
+      percent: 0,
+    });
+  });
+
+  it("menghitung hanya COMPLETED; IN_PROGRESS dan null bukan selesai", () => {
+    expect(
+      summarizeLessonStatuses([
+        "COMPLETED",
+        "IN_PROGRESS",
+        null,
+        "COMPLETED",
+        null,
+      ]),
+    ).toEqual({ completed: 2, total: 5, percent: 40 });
+  });
+
+  it("semua selesai → 100%", () => {
+    expect(summarizeLessonStatuses(["COMPLETED", "COMPLETED"])).toEqual({
+      completed: 2,
+      total: 2,
+      percent: 100,
+    });
+  });
+
+  it("persen dibulatkan", () => {
+    expect(summarizeLessonStatuses(["COMPLETED", null, null])).toEqual({
+      completed: 1,
+      total: 3,
+      percent: 33,
+    });
   });
 });

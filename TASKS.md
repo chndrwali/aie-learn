@@ -149,14 +149,16 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 ### T8. Progress UX
 
 **Rujukan:** PRD FR-007 sampai FR-010, `front-end-flow.md` (MarkCompleteButton)
-- [ ] `ProgressMark` (tiga status, ARIA)
-- [ ] `LessonVisitTracker` (sekali per mount per `lessonId`)
-- [ ] `MarkCompleteButton` dengan optimistic update dan rollback
-- [ ] `SyllabusSidebar` (Sheet di mobile)
-- [ ] Footer nav: Selesai dan lanjut, Batalkan selesai, Sebelumnya, Berikutnya
+- [x] `ProgressMark` (tiga status, ARIA)
+- [x] `LessonVisitTracker` (sekali per mount per `lessonId`)
+- [x] `MarkCompleteButton` dengan optimistic update dan rollback
+- [x] `SyllabusSidebar` (Sheet di mobile)
+- [x] Footer nav: Selesai dan lanjut, Batalkan selesai, Sebelumnya, Berikutnya
 
 **Acceptance:** US-05 dan US-06 terpenuhi. Klik ganda cepat tidak membuat error. Simulasi kegagalan jaringan memicu rollback dan toast.
 **Verifikasi:** demo manual: selesaikan 3 materi, refresh, login dari browser lain, status sama.
+
+**Selesai 19 Nov 2026.** `ProgressMark` (○ Grafit belum, ◐ setengah Sinyal sedang — SVG inline, ● penuh Sinyal + centang selesai; `role="img"` + aria-label per status, DESIGN.md §5). `SyllabusSidebar` menampilkan "X dari Y selesai" + bar `Progress` shadcn (Radix, role progressbar) + penanda di tiap baris (desktop dan Sheet mobile). `MarkCompleteButton` (client): optimistic update — batalkan query terkait, snapshot, set COMPLETED di cache `lesson.syllabus` + hitungan `catalog.phases` + status `catalog.phase`; gagal → kembalikan snapshot + toast "Gagal menyimpan. Coba lagi."; sukses → toast "Ditandai selesai" lalu `router.push` ke materi berikutnya (atau ajakan "Kembali ke dashboard" kalau ini materi terakhir kurikulum); `onSettled` invalidate `catalog.phases`, `catalog.phase`, `lesson.syllabus`, `progress.overview`, `progress.continue` (backend_flow.md). Tombol `disabled` saat pending (klik ganda tidak mengirim dua kali; server idempotent). Sudah selesai → "Batalkan selesai" (varian sekunder, optimistic ke IN_PROGRESS, toast "Tanda selesai dibatalkan") + tombol "Berikutnya" terpisah. `LessonVisitTracker` dari T7 tidak berubah (sekali per mount per lessonId; `visit` hanya invalidate `progress.continue` sesuai backend_flow — penanda ◐ materi yang sedang dibaca baru terlihat setelah navigasi, karena silabus di-prefetch server sebelum visit). `summarizeLessonStatuses` murni di `lib/progress.ts` + 4 unit test. `getLesson` mengembalikan `status` di level atas (bukan di dalam `lesson`) — halaman destructure terpisah. Verifikasi: tsc bersih, lint bersih (file disentuh), 43/43 unit + 12/12 integrasi; demo Playwright 28/28 cek lulus (3 materi selesai → hitungan 3 dari 13, refresh tetap, konteks browser kedua status sama, `dblclick` pindah sekali tanpa error, gagal server 500 → toast + rollback tombol/sidebar/hitungan, batalkan selesai → ◐ + hitungan turun, materi terakhir kurikulum → ajakan dashboard + tetap di halaman). Catatan: simulasi gagal dengan `route.abort()` TIDAK deterministik — request sempat sampai ke server dan ter-commit sebelum abort, jadi rollback cache lalu refetch justru menampilkan COMPLETED (perilaku benar: client tidak bisa tahu server sudah commit atau belum); demo final memakai `route.fulfill` 500.
 
 ### T9. Dashboard, kurikulum, halaman fase
 
@@ -232,3 +234,4 @@ Catat di sini hal yang ditemukan di luar scope task (bug, ide, ketidaksesuaian d
 - T7 (19 Nov 2026): tautan gambar relatif per-lesson ditulis ulang ke level fase sehingga 404 — contoh `phases/08-generative-ai/assets/ddpm.svg` (seharusnya `phases/08-generative-ai/06-diffusion-ddpm-from-scratch/assets/ddpm.svg`; berkasnya ada di repo). Perlu audit: berapa banyak URL gambar di konten yang 404, lalu perbaiki rewrite di ingest (bukan di renderer).
 - T7 (19 Nov 2026): judul lesson, motto, dan prasyarat masih Bahasa Inggris di DB — T3 hanya menerjemahkan `contentMd`. Keputusan: terjemahkan metadata ini juga, atau biarkan judul/motto Inggris (istilah teknis).
 - T7 (19 Nov 2026): `notFound()` di halaman lesson mengembalikan status HTTP **200** — TERKONFIRMASI juga di production build (`next start`, 19 Nov 2026), padahal rute tak dikenal biasa mengembalikan 404 dan isi halaman tidak-ditemukan tampil benar ("Materi tidak ditemukan" + tombol kembali). Penyebab: `loading.tsx` membuat shell ter-streaming dengan status 200 sebelum komponen halaman memanggil `notFound()`. Dampak praktis kecil: area belajar `noindex` + `robots.txt` disallow (T4). Perbaikan (mis. pindah cek ke luar komponen halaman) ditunda ke task berikutnya bila perlu.
+- T8 (19 Nov 2026): peringatan hydration React muncul SEKALI selama demo (tidak bisa direproduksi di muat ulang bersih /dashboard maupun lesson): "A tree hydrated but some attributes of the server rendered HTML didn't match" — selisih `id` Radix di menu dropdown avatar sidebar (`SidebarMenuButton` + `DropdownMenuTrigger`, komponen shell T6). Dugaan: `useCurrentUser` selesai di tengah hydration sehingga jumlah komponen ber-`useId` berubah. Tidak ada dampak fungsional; selidiki bila muncul lagi (bukan blocker T8).

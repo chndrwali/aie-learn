@@ -110,3 +110,19 @@ export function computePhaseProgress(
     };
   });
 }
+
+/**
+ * Ringkasan progres satu daftar materi (untuk header sidebar silabus):
+ * jumlah selesai, total, dan persen. Dipakai `SyllabusSidebar`.
+ */
+export function summarizeLessonStatuses(
+  statuses: readonly (ProgressStatusValue | null)[],
+): { completed: number; total: number; percent: number } {
+  const total = statuses.length;
+  const completed = statuses.filter((s) => s === "COMPLETED").length;
+  return {
+    completed,
+    total,
+    percent: total === 0 ? 0 : Math.round((completed / total) * 100),
+  };
+}
