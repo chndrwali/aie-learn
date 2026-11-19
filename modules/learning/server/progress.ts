@@ -147,7 +147,7 @@ export async function getContinue(userId: string) {
     prisma.lessonProgress.findMany({
       where: { userId, lesson: { isActive: true } },
       orderBy: { lastViewedAt: "desc" },
-      select: { lessonId: true, status: true },
+      select: { lessonId: true, status: true, lastViewedAt: true },
     }),
     prisma.lesson.findMany({
       where: { isActive: true, phase: { isActive: true } },
@@ -157,7 +157,7 @@ export async function getContinue(userId: string) {
         slug: true,
         title: true,
         sortOrder: true,
-        phase: { select: { slug: true } },
+        phase: { select: { slug: true, number: true, title: true } },
       },
     }),
     prisma.lessonProgress.findMany({
@@ -170,15 +170,25 @@ export async function getContinue(userId: string) {
     }),
   ]);
 
-  return resolveContinue(
+  const result = resolveContinue(
     history,
     lessons.map((l) => ({
       id: l.id,
       slug: l.slug,
       phaseSlug: l.phase.slug,
+      phaseNumber: l.phase.number,
+      phaseTitle: l.phase.title,
       title: l.title,
       sortOrder: l.sortOrder,
     })),
     completedRows.map((r) => r.lessonId),
   );
+
+  // Terakhir dibuka: entri riwayat terbaru yang materinya masih aktif
+  // (dipakai kartu "Lanjutkan belajar" di dashboard; bukan bagian aturan
+  // resolveContinue di lib/).
+  const activeIds = new Set(lessons.map((l) => l.id));
+  const currentEntry = history.find((e) => activeIds.has(e.lessonId));
+
+  return { ...result, lastViewedAt: currentEntry?.lastViewedAt ?? null };
 }

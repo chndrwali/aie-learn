@@ -13,6 +13,8 @@ export type ContinueLessonSummary = {
   id: string;
   slug: string;
   phaseSlug: string;
+  phaseNumber?: number;
+  phaseTitle?: string;
   title: string;
   sortOrder: number;
 };
@@ -125,4 +127,19 @@ export function summarizeLessonStatuses(
     total,
     percent: total === 0 ? 0 : Math.round((completed / total) * 100),
   };
+}
+
+/**
+ * Status satu fase dari hitungannya (DESIGN.md §5, dipakai `PhaseRow`):
+ * semua selesai → COMPLETED; sebagian → IN_PROGRESS; belum ada / fase
+ * kosong → null.
+ */
+export function derivePhaseStatus(
+  completed: number,
+  total: number,
+): ProgressStatusValue | null {
+  if (total === 0) return null;
+  if (completed >= total) return "COMPLETED";
+  if (completed > 0) return "IN_PROGRESS";
+  return null;
 }

@@ -64,6 +64,7 @@ export async function getPhase(userId: string, phaseSlug: string) {
         sortOrder: true,
         title: true,
         type: true,
+        languages: true,
         estimatedMinutes: true,
       },
     }),

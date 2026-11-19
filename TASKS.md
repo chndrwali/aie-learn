@@ -163,12 +163,14 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 ### T9. Dashboard, kurikulum, halaman fase
 
 **Rujukan:** `DESIGN.md` bagian 4 dan 5; PRD FR-004, FR-005, FR-008, FR-009, FR-011
-- [ ] `/dashboard`: `ContinueCard`, progress total, daftar fase, 5 aktivitas terakhir
-- [ ] `/curriculum` dan `/curriculum/[phase]` dengan `PhaseRow` dan `LessonRow`
-- [ ] State loading, kosong, error sesuai tabel
+- [x] `/dashboard`: `ContinueCard`, progress total, daftar fase, 5 aktivitas terakhir
+- [x] `/curriculum` dan `/curriculum/[phase]` dengan `PhaseRow` dan `LessonRow`
+- [x] State loading, kosong, error sesuai tabel
 
 **Acceptance:** US-04 terpenuhi; persen sesuai `computePhaseProgress`; learner baru melihat ajakan mulai.
 **Verifikasi:** dua akun berbeda memiliki progress berbeda dan tidak saling terlihat.
+
+**Selesai 20 Nov 2026.** `ContinueCard` (satu-satunya kartu dashboard): "Lanjutkan belajar" + fase & judul materi + "Terakhir dibuka {formatLastViewed}" (reason resume) / "Materi berikutnya yang belum selesai" (reason next) / learner baru → "Mulai dari Fase 0" + "Mulai belajar"; semua selesai → ajakan "Lihat kurikulum". `TotalProgress` ("X dari 542 selesai" + bar + persen) dan `RecentActivity` (5 aktivitas, penanda + judul + waktu relatif) dari `progress.overview`; `PhaseList` + `PhaseRow` (penanda fase dari `derivePhaseStatus` — ● semua, ◐ sebagian, ○ belum — nomor, judul, "8 / 13", bar; tagline opsional di /curriculum) dari `catalog.phases`; `PhaseDetail` + `LessonRow` (status, nomor, judul, badge Konsep/Praktik — Praktik garis Sinyal — bahasa, estimasi menit; baris, bukan kartu) dari `catalog.phase`. Server: `getContinue` kini mengembalikan `lastViewedAt` (entri riwayat aktif terbaru) + nomor/judul fase di ringkasan materi; `getPhase` menambah `languages` di select. Lib baru: `formatLastViewed` ("Hari ini 14.20" / "Kemarin 14.20" / "12 Nov 2026 14.20") + `derivePhaseStatus`, masing-masing 4 unit test. Halaman: dashboard (prefetch continue + overview + phases; sapaan "Halo, {nama depan}." dari session), /curriculum (jumlah materi/fase dihitung dari data, bukan hardcode), /curriculum/[phase] (cek NOT_FOUND via caller → not-found.tsx "Fase tidak ditemukan"). Peta kurikulum di dashboard (wireframe DESIGN.md) TIDAK dibangun — itu T10. Verifikasi: tsc bersih, lint bersih (file disentuh), 51/51 unit + 12/12 integrasi; demo Playwright 25/28 langsung + 3 cek ulang lulus semua (Andi 3 materi → dashboard 3 dari 542 + Fase 0 3/13 + lanjut ke APIs & Keys; Budi baru → "Mulai dari Fase 0" + 0 dari 542 + "Belum ada aktivitas." + Fase 0 0/13 = isolasi; /curriculum 20 baris; Fase 3 13 baris; mobile 375 tanpa scroll horizontal; tanpa console/page error). Catatan demo: Fase 3 memang 13/13 Praktik (bukan bug — tidak ada Konsep di fase itu); halaman not-found fase ter-compile lambat di dev sehingga cek pertama kelewat waktu, isi halaman benar (curl: "Fase tidak ditemukan" + status 200, sama seperti temuan notFound T7).
 
 ### T10. Landing final dan peta kurikulum
 

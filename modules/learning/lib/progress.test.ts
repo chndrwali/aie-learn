@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   computePhaseProgress,
+  derivePhaseStatus,
   resolveContinue,
   summarizeLessonStatuses,
   type ContinueLessonSummary,
@@ -176,5 +177,23 @@ describe("summarizeLessonStatuses", () => {
       total: 3,
       percent: 33,
     });
+  });
+});
+
+describe("derivePhaseStatus", () => {
+  it("fase kosong → null", () => {
+    expect(derivePhaseStatus(0, 0)).toBeNull();
+  });
+
+  it("belum ada yang selesai → null", () => {
+    expect(derivePhaseStatus(0, 13)).toBeNull();
+  });
+
+  it("sebagian → IN_PROGRESS", () => {
+    expect(derivePhaseStatus(3, 13)).toBe("IN_PROGRESS");
+  });
+
+  it("semua selesai → COMPLETED", () => {
+    expect(derivePhaseStatus(13, 13)).toBe("COMPLETED");
   });
 });
