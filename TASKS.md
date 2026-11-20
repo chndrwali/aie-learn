@@ -191,10 +191,12 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 
 ### T11. E2E
 
-- [ ] Playwright: (1) anonim ke `/learn/...` → login → kembali ke materi tujuan, (2) register → buka materi → selesai → refresh → status tetap, (3) dashboard "Lanjutkan belajar" menuju materi benar
-- [ ] CI sederhana (opsional): typecheck, lint, test
+- [x] Playwright: (1) anonim ke `/learn/...` → login → kembali ke materi tujuan, (2) register → buka materi → selesai → refresh → status tetap, (3) dashboard "Lanjutkan belajar" menuju materi benar
+- [x] CI sederhana (opsional): typecheck, lint, test
 
 **Acceptance:** ketiga alur lulus berulang (tidak flaky) 3 kali berturut-turut.
+
+**Selesai 20 Nov 2026.** `@playwright/test@1.65.1` (dev, sudah disetujui front-end-flow.md) + `playwright.config.ts` (webServer menyalakan dev server bila belum jalan, `reuseExistingServer: true`) + `e2e/flows.spec.ts` (3 alur) + `e2e/helpers.ts` (register/login lewat UI, email unik per run, akun uji dihapus di afterAll via Prisma — DB kembali 0 user / 0 progress) + script `npm run test:e2e`. CI `.github/workflows/ci.yml` (typecheck, lint jalur bersih, unit test lib; E2E TIDAK di CI karena butuh DATABASE_URL Neon + tunnel). Verifikasi: tsc bersih, lint bersih (scope CI), 67/67 vitest (55 unit + 12 integrasi); E2E 3/3 lulus 3× berturut-turut pada kode final (tiap run ±2,4 mnt). Jalan menuju hijau: (1) browser 1.65.1 belum ter-cache (`npx playwright install chromium` berhasil dari CDN); (2) `getByLabel("Password")` ambigu dengan tombol "Show password" → `{ exact: true }`; (3) alur 1 sempat gagal sekali saat dev server masih dingin (compile rute materi > 30 detik) → timeout navigasi pasca-login dinaikkan ke 60 detik + catatan di kode.
 
 ### T12. Deploy dan hardening
 

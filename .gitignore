@@ -44,3 +44,7 @@ next-env.d.ts
 
 .content-cache/
 .manual/
+
+# Playwright E2E
+test-results/
+playwright-report/
