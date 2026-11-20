@@ -175,13 +175,15 @@ Baca ulang AGENTS.md bagian "Aturan keamanan" dan "Aturan kode", lalu lanjutkan 
 ### T10. Landing final dan peta kurikulum
 
 **Rujukan:** `DESIGN.md` bagian 4 (Landing), bagian 5 (Peta), bagian 7 (Gerak)
-- [ ] `lib/phase-graph-layout.ts` (fungsi murni) + test: kedalaman lapisan sesuai `phase-graph.json` (mis. Fase 3 di kedalaman 3, Fase 19 di kedalaman 12)
-- [ ] `PhaseMap` SVG, versi statis untuk landing; fallback daftar di `< md`
-- [ ] Landing penuh: hero + peta, daftar fase (dari `landing.outline`), cara kerja, atribusi
-- [ ] Satu animasi masuk peta; `prefers-reduced-motion` dihormati
+- [x] `lib/phase-graph-layout.ts` (fungsi murni) + test: kedalaman lapisan sesuai `phase-graph.json` (mis. Fase 3 di kedalaman 3, Fase 19 di kedalaman 12)
+- [x] `PhaseMap` SVG, versi statis untuk landing; fallback daftar di `< md`
+- [x] Landing penuh: hero + peta, daftar fase (dari `landing.outline`), cara kerja, atribusi
+- [x] Satu animasi masuk peta; `prefers-reduced-motion` dihormati
 
 **Acceptance:** FR-001, FR-013, FR-016. HTML landing tidak memuat `contentMd` atau judul materi.
 **Verifikasi:** `curl` halaman `/` dan cari judul materi sebagai kata kunci: tidak ada. Uji `prefers-reduced-motion`.
+
+**Selesai 20 Nov 2026.** `layoutPhaseGraph` (Kahn + jalur terpanjang; throw bila ada siklus) — graf asli: 20 simpul, 13 lapisan, lebar lapisan [1,1,1,1,4,1,2,2,1,1,2,2,1], Fase 3 kedalaman 3, Fase 19 kedalaman 12; 4 unit test. `PhaseMap` (SVG biasa, tanpa library graf): sumbu X kedalaman, Y urutan dalam lapisan; simpul ○/◐/● sesuai status + nomor di bawahnya; sisi ke simpul selesai memakai Sinyal; di landing statis (semua ○) + animasi masuk CSS (delay 80 ms × kedalaman, total ≤ 1,2 detik) dan `prefers-reduced-motion: reduce` → langsung tampil penuh; `< md` diganti daftar vertikal (alternatif teks setara). `DashboardPhaseMap` (client, dari catalog.phases): simpul berstatus + link ke /curriculum/[phase], tanpa animasi masuk — janji T9 ditepati. Landing: header (Masuk/Daftar atau Ke dashboard), hero "Pelajari AI engineering dari dasar, sampai agent." + "{N} materi dalam {M} fase" dari landing.outline, peta, "Isi kurikulum" 20 fase, "Cara kerja" 3 langkah, footer atribusi (repo + Lisensi MIT + THIRD_PARTY_NOTICES.md). Verifikasi: tsc bersih, lint bersih (file disentuh), 55/55 unit + 12/12 integrasi; curl `/` 200 — judul materi ("Backpropagation from Scratch", "The Perceptron", "Dev Environment") dan "contentMd" TIDAK ada di HTML; demo Playwright lulus (landing 20 simpul + 21 sisi + 20 baris fase, animasi selesai opacity 1, reduced-motion langsung opacity 1, mobile 375 SVG sembunyi + daftar tampil tanpa scroll horizontal, dashboard: Fase 0 selesai → simpul ● terisi, klik simpul Fase 3 → halaman fase; tanpa console/page error). Catatan demo: dua cek pertama gagal karena artefak skrip (cek footer di dalam `<main>` padahal footer di luar main; loop klik 13 materi berhenti dini karena compile dev lambat) — keduanya dikonfirmasi benar lewat cek ulang.
 
 ---
 

@@ -147,3 +147,28 @@
   overflow-x: auto;
   overflow-y: hidden;
 }
+
+/* Peta kurikulum (DESIGN.md §7): satu animasi masuk di landing — simpul
+   muncul berurutan mengikuti kedalaman (delay per simpul di PhaseMap,
+   80 ms × 13 lapisan + 240 ms durasi = ≤ 1,2 detik). Tidak ada animasi
+   lain di landing. prefers-reduced-motion: peta langsung tampil penuh. */
+.phase-map-node {
+  opacity: 0;
+  animation: phase-map-in 240ms ease-out forwards;
+}
+
+@keyframes phase-map-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phase-map-node {
+    animation: none;
+    opacity: 1;
+  }
+}

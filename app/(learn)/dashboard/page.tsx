@@ -1,5 +1,6 @@
 import { getSession } from "@/hooks/get-session";
 import { ContinueCard } from "@/modules/learning/ui/components/continue-card";
+import { DashboardPhaseMap } from "@/modules/learning/ui/components/dashboard-phase-map";
 import { PhaseList } from "@/modules/learning/ui/components/phase-list";
 import { RecentActivity } from "@/modules/learning/ui/components/recent-activity";
 import { TotalProgress } from "@/modules/learning/ui/components/total-progress";
@@ -7,8 +8,8 @@ import { HydrateClient, prefetch, trpc } from "@/trpc/server";
 
 /**
  * Dashboard learner (FR-011, DESIGN.md §4): sapaan, kartu Lanjutkan
- * belajar, progres total, daftar semua fase, 5 aktivitas terakhir.
- * Peta kurikulum ada di T10 — belum di sini.
+ * belajar, progres total, peta kurikulum, daftar semua fase, 5 aktivitas
+ * terakhir.
  */
 export default async function DashboardPage() {
   const session = await getSession();
@@ -32,6 +33,12 @@ export default async function DashboardPage() {
         <div className="mt-8">
           <TotalProgress />
         </div>
+        <section aria-label="Peta kurikulum" className="mt-8">
+          <h2 className="mb-2 font-sans text-sm font-semibold">
+            Peta kurikulum
+          </h2>
+          <DashboardPhaseMap />
+        </section>
         <section aria-label="Semua fase" className="mt-8">
           <h2 className="mb-2 font-sans text-sm font-semibold">
             Semua fase
