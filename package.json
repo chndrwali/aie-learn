@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "DATABASE_URL=${DATABASE_URL:-postgresql://user:password@localhost:5432/aie-learn} prisma generate",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "content:sync": "tsx scripts/ingest-content.ts",
