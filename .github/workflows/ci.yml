@@ -1,0 +1,26 @@
+# CI sederhana (T11, opsional): typecheck, lint, unit test.
+# E2E TIDAK jalan di sini — butuh DATABASE_URL Neon (secret) + tunnel;
+# E2E dijalankan manual: DATABASE_URL=$(~/workspace/tunnel-url.sh) npm run test:e2e
+# Lint repo-wide masih rusak sejak starter (408 masalah pra-T1), jadi CI
+# hanya lint jalur yang dijaga bersih (modules/learning, e2e, halaman learn).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx eslint modules/learning e2e "app/(learn)" "app/(public)"
+      - run: npx vitest run modules/learning/lib
